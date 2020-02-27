@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!-- Meta, title, CSS, favicons, etc. -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>e-albums找回密码</title>
+
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.min1.css" rel="stylesheet">
+
+        <style>
+
+            .box1 {
+                width: 30%;
+                height: 1000px;
+                float: left;
+                background-repeat: no-repeat;
+                background-image: url("https://cdn-go.cn/qq-web/zc.qq.com/latest/v3/img/01-1.jpg");
+                animation: frams 10s infinite;
+            }
+
+            @keyframes frams {
+                0% {
+                    background-image: url("https://cdn-go.cn/qq-web/zc.qq.com/latest/v3/img/01-1.jpg");
+                    background-size: 100% 100%;
+                    background-repeat: no-repeat
+                }
+                33% {
+                    background-image: url("https://cdn-go.cn/qq-web/zc.qq.com/latest/v3/img/01-2.jpg");
+                    background-size: 100% 100%;
+                    background-repeat: no-repeat
+                }
+                66% {
+                    background-image: url("https://cdn-go.cn/qq-web/zc.qq.com/latest/v3/img/01-3.jpg");
+                    background-size: 100% 100%;
+                    background-repeat: no-repeat
+                }
+                100% {
+                    background-image: url("https://cdn-go.cn/qq-web/zc.qq.com/latest/v3/img/01-4.jpg");
+                    background-size: 100% 100%;
+                    background-repeat: no-repeat
+                }
+            }
+
+            .box2 {
+                float: left;
+                width: 70%;
+                height: 1000px;
+                margin-left: 0;
+                height: auto;
+            }
+
+        </style>
+
+
+    </head>
+    <body>
+        <div class="box1">
+        </div>
+        <div class="box2">
+            <h1 style="margin-left: 10%;margin-top: 10%">e-albums重置密码</h1>
+            <div class="x_content" style="display: block;margin-left: 10%">
+                <br/>
+                <form id="resetForm" data-parsley-validate="" class="form-horizontal form-label-left" novalidate="">
+
+
+                    <div class="item form-group" id="emailDiv">
+                        <label class="col-form-label col-md-3 col-sm-3 label-align" for="email">邮箱 <span
+                                class="required" id="errorSpan4">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input type="text" id="email" name="email" required="required" class="form-control ">
+                        </div>
+                    </div>
+                    <div class="item form-group" id="codeDiv">
+                        <div class="col-md-6 col-sm-6 ">
+                            <button class="btn btn-primary" type="button" id="sendCode">发送邮箱验证码
+                            </button>
+                            <span class="required"
+                                  id="errorSpan6"></span>
+                        </div>
+                        <div class="col-md-3 col-sm-6 ">
+                            <input type="text" id="verifyCode" name="verifyCode" required="required"
+                                   class="form-control "
+                                   placeholder="邮箱验证码" style="display: none"><span class="required"
+                                                                                   id="errorSpan5"></span>
+                        </div>
+                    </div>
+                    <div class="item form-group" style="display: none" id="pwdDiv1">
+                        <label class="col-form-label col-md-5 col-sm-3 label-align" for="pwd1">密码 <span
+                                class="required"
+                                id="errorSpan2">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input type="password" id="pwd1" name="pwd1" required="required" class="form-control">
+                        </div>
+                    </div>
+                    <div class="item form-group" style="display: none" id="pwdDiv2">
+                        <label for="pwd2" class="col-form-label col-md-5 col-sm-3 label-align">重复密码<span
+                                class="required" id="errorSpan3">*</span></label>
+                        <div class="col-md-6 col-sm-6 ">
+                            <input id="pwd2" class="form-control" type="password" name="pwd2">
+                        </div>
+                    </div>
+                    <div class="ln_solid"></div>
+                    <div class="item form-group" id="confirmDiv">
+                        <div class="col-md-6 col-sm-6 offset-md-3" style="margin-left: 30%">
+                            <a href="/">
+                                <button class="btn btn-primary" type="button">返回登录</button>
+                            </a>
+                            <a href="/toRegister"></a>
+                            <input type="button" class="btn btn-success" id="btnconfirm" value="确认"><span
+                                class="required" id="errorSpan7"></span></input>
+                        </div>
+                    </div>
+                    <div class="ln_solid"></div>
+                    <div class="item form-group" id="resetDiv" style="display: none">
+                        <div class="col-md-6 col-sm-6 offset-md-3" style="margin-left: 30%">
+                            <input type="button" class="btn btn-success" id="btnRest" value="确认重置"><span
+                                class="required" id="errorSpan8"></span></input>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script src="js/jquery.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#pwd1").blur(function () {
+                    if ($("#pwd1").val() == "") {
+                        $("#errorSpan2").text("密码不能为空！").css("color", "red");
+                    }
+                });
+                $("#pwd2").blur(function () {
+                    if ($("#pwd2").val() == "") {
+                        $("#errorSpan3").text("重复密码不能为空！").css("color", "red");
+                    }
+                    if ($("#pwd2").val() != $("#pwd1").val()) {
+                        $("#errorSpan3").text("两次密码不一致！").css("color", "red");
+                    }
+                });
+                $("#email").blur(function () {
+                    var emailReg = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+                    if ($("#email").val() == "") {
+                        $("#errorSpan4").text("邮箱不能为空！").css("color", "red");
+                    }
+                    if (!emailReg.test($("#email").val())) {
+                        $("#errorSpan4").text("你输入的邮箱格式错误！").css("color", "red");
+                    }
+                });
+                $("#verifyCode").blur(function () {
+                    if ($("#verifyCode").val() == "") {
+                        $("#errorSpan5").text("验证码不能为空！").css("color", "red");
+                    }
+                });
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#sendCode").click(function () {
+                    var emailReg = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+                    if ($("#email").val() == "") {
+                        $("#errorSpan5").text("信息有误，请检查！").css("color", "red");
+                    } else if (!emailReg.test($("#email").val())) {
+                        $("#errorSpan4").text("你输入的邮箱格式错误！").css("color", "red");
+                    } else {
+                        $("#verifyCode").show();
+                        $("#errorSpan5").text("邮箱已发送至你的邮箱，请注意查收！并在十分钟之内完成重置密码操作！").css("color", "green");
+                        $.post({
+                            url: "/sendResetCode",
+                            data: $("#resetForm").serialize(),
+                            success: function (result) {
+                                if ("不存在该邮箱" == (result)) {
+                                    $("#errorSpan6").text(result).css("color", "red");
+                                }
+                            }
+                        });
+                    }
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#btnconfirm").click(function () {
+                    if ($("#verifyCode") == "") {
+                        ("#errorSpan7").text("验证码不能为空！").css("color", "red");
+                    } else {
+                        $.post({
+                            url: "/confirmResetCode",
+                            data: $("#resetForm").serialize(),
+                            success: function (result) {
+                                if ("验证码错误" == (result)) {
+                                    $("#errorSpan8").text("验证码错误!").css("color", "red");
+                                } else {
+                                    $("#emailDiv").hide();
+                                    $("#codeDiv").hide();
+                                    $("#confirmDiv").hide();
+                                    $("#pwdDiv1").show();
+                                    $("#pwdDiv2").show();
+                                    $("#resetDiv").show();
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#btnRest").click(function () {
+                    if ($("#pwd1").val() == "" || $("#pwd2").val() != $("#pwd1").val()) {
+                        $("#errorSpan7").text("信息有误，请检查！").css("color", "red");
+                    } else {
+                        $.post({
+                            url: "/resetUser",
+                            data: $("#resetForm").serialize(),
+                            success: function (result) {
+                                if ("修改密码失败" == (result)) {
+                                    alert("修改密码失败")
+                                } else {
+                                    alert("修改密码成功,确认返回登录！");
+                                    window.location.href = "/";
+                                }
+                            }
+                        })
+                    }
+                })
+            });
+
+        </script>
+    </body>
+</html>

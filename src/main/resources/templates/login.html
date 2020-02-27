@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>e-albums登录</title>
+        <link rel="stylesheet" href="css/font-awesome-4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="css/style1.css">
+    </head>
+    <body>
+
+
+        <div class="materialContainer">
+            <div class="box">
+                <div class="title">登录</div>
+                <form action="loginMethod" method="post" id="loginForm">
+                    <div class="input">
+                        <label for="name">用户名</label>
+                        <input type="text" name="name" id="name">
+                        <span class="spin"></span>
+                    </div>
+                    <div class="input">
+                        <label for="pass">密码</label>
+                        <input type="password" name="pass" id="pass">
+                        <span class="spin"></span>
+                    </div>
+                </form>
+                <div class="button login">
+                    <button id="login">
+                        <span>登录</span>
+                        <i class="fa fa-check"></i>
+                    </button>
+                </div>
+                <span id="errorMsg1" class="pass-forgot" style="color: red" th:text="${msg}"></span>
+                <a href="toRegister" class="pass-forgot">注册账号</a>
+                <a href="/toReset" class="pass-forgot">忘记密码？</a>
+            </div>
+        </div>
+
+        <script src="js/jquery.min.js"></script>
+        <script src="js/index.js"></script>
+        <!--登录-->
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#errorMsg1").hide();
+                $("#login").click(function () {
+                    if($("#name").val() == "" || $("#pass").val() == ""){
+                        $("#errorMsg1").text("用户名或密码不能为空");
+                        $("#errorMsg1").show();
+                    }else{
+                        $("#loginForm").submit();
+                    }
+                });
+            });
+        </script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                if ($("#errorMsg1").text() != "") {
+                    $("#errorMsg1").show();
+                }
+            });
+        </script>
+
+    </body>
+</html>

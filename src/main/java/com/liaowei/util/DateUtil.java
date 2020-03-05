@@ -8,8 +8,15 @@ import java.util.Date;
  * <p></p>
  */
 public class DateUtil {
+    //邮箱日期
     public static String dateMsg() {
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHH");
+        return df.format(new Date());
+
+    }
+    //邮箱日期
+    public static String uploadMsg() {
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHss");
         return df.format(new Date());
 
     }

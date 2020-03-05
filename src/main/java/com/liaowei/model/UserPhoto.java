@@ -28,4 +28,9 @@ public class UserPhoto {
     * 照片表id
     */
     private Integer photoId;
+
+    public UserPhoto(Integer userId, Integer photoId) {
+        this.userId = userId;
+        this.photoId = photoId;
+    }
 }

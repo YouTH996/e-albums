@@ -169,7 +169,7 @@
                         $("#errorSpan4").text("你输入的邮箱格式错误！").css("color", "red");
                     } else {
                         $("#verifyCode").show();
-                        $("#errorSpan5").text("邮箱已发送至你的邮箱，请注意查收！并在十分钟之内完成重置密码操作！").css("color", "green");
+                        $("#errorSpan5").text("正在验证邮箱和发送验证码，请稍后。。。").css("color", "green");
                         $.post({
                             url: "/sendResetCode",
                             data: $("#resetForm").serialize(),

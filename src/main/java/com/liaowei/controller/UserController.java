@@ -1,19 +1,28 @@
 package com.liaowei.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.liaowei.model.Photo;
 import com.liaowei.model.User;
+import com.liaowei.model.UserPhoto;
 import com.liaowei.service.MailService;
+import com.liaowei.service.PhotoService;
+import com.liaowei.service.UserPhotoService;
 import com.liaowei.service.UserService;
 import com.liaowei.service.impl.RedisServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static com.liaowei.util.DateUtil.dateMsg;
 import static com.liaowei.util.EmailCode.generteCode;
@@ -33,13 +42,17 @@ public class UserController {
     MailService mailService;
     @Autowired
     RedisServiceImpl redisService;
+    @Autowired
+    UserPhotoService userPhotoService;
+    @Autowired
+    PhotoService photoService;
 
     /**
      * 跳转到登录页
      *
      * @return
      */
-    @RequestMapping(value = {"/","login"})
+    @RequestMapping(value = {"/"})
     public String toLogin() {
         return "login";
     }
@@ -49,7 +62,7 @@ public class UserController {
      *
      * @return
      */
-    @RequestMapping("toRegister")
+    @RequestMapping("/toRegister")
     public String toRegister() {
         return "register";
     }
@@ -59,7 +72,7 @@ public class UserController {
      *
      * @return
      */
-    @RequestMapping("toIndex")
+    @RequestMapping("/toIndex")
     public String toIndex() {
         return "index";
     }
@@ -69,39 +82,35 @@ public class UserController {
      *
      * @return
      */
-    @RequestMapping("toReset")
+    @RequestMapping("/toReset")
     public String toReset() {
         return "reset";
     }
 
     /**
-     * 跳转到works页
+     * 跳转到所有照片页
      *
      * @return
      */
-    @RequestMapping("toWorks")
-    public String toWorks() {
-        return "works";
+    @RequestMapping("/toAllPhotos")
+    public String toWorks(HttpSession session) {
+        if (null == session.getAttribute("user")) {
+            return "login";
+        }
+        return "all-photos";
     }
 
     /**
-     * 跳转到gallery页
+     * 跳转到照片特效页
      *
      * @return
      */
-    @RequestMapping("toGallery")
-    public String toGallery() {
-        return "gallery";
-    }
-
-    /**
-     * 跳转到blog页
-     *
-     * @return
-     */
-    @RequestMapping("toBlog")
-    public String toBlog() {
-        return "blog";
+    @RequestMapping("/toPhotosEffects")
+    public String toGallery(HttpSession session) {
+        if (null == session.getAttribute("user")) {
+            return "login";
+        }
+        return "photos-effects";
     }
 
     /**
@@ -109,26 +118,93 @@ public class UserController {
      *
      * @return
      */
-    @RequestMapping("toUpload")
-    public String toUpload() {
+    @RequestMapping("/toUpload")
+    public String toUpload(HttpSession session) {
+        if (null == session.getAttribute("user")) {
+            return "login";
+        }
         return "upload";
     }
 
-    @RequestMapping("loginMethod")
-    public String loginMethod(HttpServletRequest request, ModelMap map) {
+    @RequestMapping("/login")
+    @ResponseBody
+    public String login(HttpServletRequest request, HttpSession session, Model model) {
         String name = request.getParameter("name");
         String pass = request.getParameter("pass");
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>().eq("username", name).eq("password", pass);
         User user = userService.getOne(queryWrapper);
         if (null == user) {
-            map.addAttribute("msg", "登录失败，用户名或密码错误！");
-            return "login";
+            return "登录失败，用户名或密码错误！";
         } else {
-            return "index";
+            ArrayList<Photo> pepList = new ArrayList<>();
+            ArrayList<Photo> sceList = new ArrayList<>();
+            ArrayList<Photo> buiList = new ArrayList<>();
+            ArrayList<Photo> foodList = new ArrayList<>();
+            User user1 = JSONObject.toJavaObject(JSONObject.parseObject(redisService.get("user_" + user.getUsername())), User.class);
+            if (null != user1) {
+                List<Photo> pepList1 = JSONObject.parseArray(redisService.get(name + "_pepPhotos"), Photo.class);
+                List<Photo> sceList1 = JSONObject.parseArray(redisService.get(name + "_scePhotos"), Photo.class);
+                List<Photo> buiList1 = JSONObject.parseArray(redisService.get(name + "_buiPhotos"), Photo.class);
+                List<Photo> foodList1 = JSONObject.parseArray(redisService.get(name + "_foodPhotos"), Photo.class);
+                session.setAttribute("pepPhotos", pepList1);
+                session.setAttribute("scePhotos", sceList1);
+                session.setAttribute("buiPhotos", buiList1);
+                session.setAttribute("foodPhotos", foodList1);
+                request.getSession().setAttribute("user", user1);
+                return "index";
+            } else {
+                //得到用户的ID
+                Integer id = user.getId();
+                //根据用于ID，得到用户照片关联表中的照片ID，用于获取该用户账户下的照片
+                QueryWrapper<UserPhoto> wrapper = new QueryWrapper<UserPhoto>().eq("user_id", id);
+                List<UserPhoto> userPhotoList = userPhotoService.list(wrapper);
+                for (UserPhoto userPhoto : userPhotoList) {
+                    Integer photoId = userPhoto.getPhotoId();
+                    HashMap map = getPhoto(photoId);
+                    if (map.containsKey("pepPhoto")) {
+                        Photo pepPhoto = (Photo) map.get("pepPhoto");
+                        pepList.add(pepPhoto);
+                    } else if (map.containsKey("scePhoto")) {
+                        Photo scePhoto = (Photo) map.get("scePhoto");
+                        sceList.add(scePhoto);
+                    } else if (map.containsKey("buiPhoto")) {
+                        Photo buiPhoto = (Photo) map.get("buiPhoto");
+                        buiList.add(buiPhoto);
+                    } else if (map.containsKey("foodPhoto")) {
+                        Photo foodPhoto = (Photo) map.get("foodPhoto");
+                        foodList.add(foodPhoto);
+                    }
+                }
+                JudgeListSize(request, session, user, pepList, sceList, buiList, foodList);
+                //将user存入redis
+                redisService.setObject("user_" + name, user);
+                redisService.setObject(user.getUsername() + "_pepPhotos", pepList);
+                redisService.setObject(user.getUsername() + "_scePhotos", sceList);
+                redisService.setObject(user.getUsername() + "_buiPhotos", buiList);
+                redisService.setObject(user.getUsername() + "_foodPhotos", foodList);
+                return "index";
+            }
+
         }
     }
 
-    @RequestMapping("sendCode")
+    private void JudgeListSize(HttpServletRequest request, HttpSession session, User user, ArrayList<Photo> pepList, ArrayList<Photo> sceList, ArrayList<Photo> buiList, ArrayList<Photo> foodList) {
+        if (pepList.size() != 0) {
+            session.setAttribute("pepPhotos", pepList);
+        }
+        if (sceList.size() != 0) {
+            session.setAttribute("scePhotos", sceList);
+        }
+        if (buiList.size() != 0) {
+            session.setAttribute("buiPhotos", buiList);
+        }
+        if (foodList.size() != 0) {
+            session.setAttribute("foodPhotos", foodList);
+        }
+        request.getSession().setAttribute("user", user);
+    }
+
+    @RequestMapping("/sendCode")
     @ResponseBody
     public String sendCode(HttpServletRequest request) {
         String email1 = request.getParameter("email");
@@ -162,7 +238,7 @@ public class UserController {
         return "";
     }
 
-    @RequestMapping("sendResetCode")
+    @RequestMapping("/sendResetCode")
     @ResponseBody
     public String sendResetCode(HttpServletRequest request) {
         String email1 = request.getParameter("email");
@@ -187,7 +263,6 @@ public class UserController {
             log.info("redis设置成功");
 
         }
-
         return "";
     }
 
@@ -212,7 +287,6 @@ public class UserController {
         if (!verifyCode.equals(code)) {
             return "验证码错误";
         } else {
-//            select("username", "password", "sex", "email")
             QueryWrapper<User> queryWrapper = new QueryWrapper<User>()
                     .eq("username", username)
                     .eq("password", pwd).eq("sex", sex).eq("email", email);
@@ -245,11 +319,38 @@ public class UserController {
         String email = handleEmail(email1);
         User user = new User(pwd);
         QueryWrapper<User> queryWrapper = new QueryWrapper<User>().eq("email", email);
-        boolean b = userService.update(user,queryWrapper);
-        if(!b){
+        boolean b = userService.update(user, queryWrapper);
+        if (!b) {
             return "修改密码失败";
         }
         return "";
+    }
+
+    public HashMap getPhoto(int id) {
+        HashMap<String, Photo> map = new HashMap<String, Photo>(128);
+        Photo photo = photoService.getById(id);
+        Integer photoType = photo.getPhotoType();
+        switch (photoType) {
+            //人物照片
+            case 0:
+                map.put("pepPhoto", photo);
+                break;
+            //风景照片
+            case 1:
+                map.put("scePhoto", photo);
+                break;
+            //建筑照片
+            case 2:
+                map.put("buiPhoto", photo);
+                break;
+            //美食照片
+            case 3:
+                map.put("foodPhoto", photo);
+                break;
+
+        }
+
+        return map;
     }
 
 }

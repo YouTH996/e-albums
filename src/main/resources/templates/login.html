@@ -12,7 +12,7 @@
         <div class="materialContainer">
             <div class="box">
                 <div class="title">登录</div>
-                <form action="loginMethod" method="post" id="loginForm">
+                <form id="loginForm">
                     <div class="input">
                         <label for="name">用户名</label>
                         <input type="text" name="name" id="name">
@@ -30,8 +30,8 @@
                         <i class="fa fa-check"></i>
                     </button>
                 </div>
-                <span id="errorMsg1" class="pass-forgot" style="color: red" th:text="${msg}"></span>
-                <a href="toRegister" class="pass-forgot">注册账号</a>
+                <span id="errorMsg1" class="pass-forgot" style="color: red;display: block" ></span>
+                <a href="/toRegister" class="pass-forgot">注册账号</a>
                 <a href="/toReset" class="pass-forgot">忘记密码？</a>
             </div>
         </div>
@@ -43,22 +43,26 @@
             $(document).ready(function () {
                 $("#errorMsg1").hide();
                 $("#login").click(function () {
-                    if($("#name").val() == "" || $("#pass").val() == ""){
+                    if ($("#name").val() == "" || $("#pass").val() == "") {
                         $("#errorMsg1").text("用户名或密码不能为空");
                         $("#errorMsg1").show();
-                    }else{
-                        $("#loginForm").submit();
+                    } else {
+                        $.post({
+                            url: "/login",
+                            data: $("#loginForm").serialize(),
+                            success: function (result) {
+                                if ("index" == result) {
+                                    window.location.href = "/toIndex";
+                                }else{
+                                    $("#errorMsg1").text(result);
+                                    $("#errorMsg1").show();
+                                }
+                            }
+
+                        });
                     }
                 });
             });
         </script>
-        <script type="text/javascript">
-            $(document).ready(function () {
-                if ($("#errorMsg1").text() != "") {
-                    $("#errorMsg1").show();
-                }
-            });
-        </script>
-
     </body>
 </html>

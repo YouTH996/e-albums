@@ -105,12 +105,51 @@ public class UserController {
      *
      * @return
      */
-    @RequestMapping("/toPhotosEffects")
-    public String toGallery(HttpSession session) {
+    @RequestMapping("/toPhotosEffects1")
+    public String toPhotosEffects(HttpSession session) {
         if (null == session.getAttribute("user")) {
             return "login";
         }
-        return "photos-effects";
+        return "photos-effects1";
+    }
+
+    /**
+     * 跳转到照片特效页4
+     *
+     * @return
+     */
+    @RequestMapping("/toPhotosOrganize")
+    public String toPhotosEffects4(HttpSession session) {
+        if (null == session.getAttribute("user")) {
+            return "login";
+        }
+        return "photos-organize";
+    }
+
+    /**
+     * 跳转到照片特效页2
+     *
+     * @return
+     */
+    @RequestMapping("/toPhotosEffects2")
+    public String toPhotosEffects2(HttpSession session) {
+        if (null == session.getAttribute("user")) {
+            return "login";
+        }
+        return "photos-effects2";
+    }
+
+    /**
+     * 跳转到照片特效页3
+     *
+     * @return
+     */
+    @RequestMapping("/toPhotosEffects3")
+    public String toPhotosEffects3(HttpSession session) {
+        if (null == session.getAttribute("user")) {
+            return "login";
+        }
+        return "photos-effects3";
     }
 
     /**
@@ -142,6 +181,7 @@ public class UserController {
             ArrayList<Photo> foodList = new ArrayList<>();
             User user1 = JSONObject.toJavaObject(JSONObject.parseObject(redisService.get("user_" + user.getUsername())), User.class);
             if (null != user1) {
+                List<Photo> photos = JSONObject.parseArray(redisService.get(name + "_photos"), Photo.class);
                 List<Photo> pepList1 = JSONObject.parseArray(redisService.get(name + "_pepPhotos"), Photo.class);
                 List<Photo> sceList1 = JSONObject.parseArray(redisService.get(name + "_scePhotos"), Photo.class);
                 List<Photo> buiList1 = JSONObject.parseArray(redisService.get(name + "_buiPhotos"), Photo.class);
@@ -150,6 +190,7 @@ public class UserController {
                 session.setAttribute("scePhotos", sceList1);
                 session.setAttribute("buiPhotos", buiList1);
                 session.setAttribute("foodPhotos", foodList1);
+                session.setAttribute("photos", photos);
                 request.getSession().setAttribute("user", user1);
                 return "index";
             } else {

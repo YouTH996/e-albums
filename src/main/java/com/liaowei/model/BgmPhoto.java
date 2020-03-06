@@ -1,7 +1,6 @@
 package com.liaowei.model;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -12,7 +11,6 @@ import lombok.Data;
 */
 @SuppressWarnings("ALL")
 @TableName("TB_BGM_PHOTO")
-@KeySequence(value = "S_TB_BGM_PHOTO", clazz = Integer.class)
 @Data
 public class BgmPhoto {
 

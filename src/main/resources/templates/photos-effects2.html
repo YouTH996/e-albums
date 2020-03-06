@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>图片立方体打开合并旋转动画特效</title>
+
+        <!--下雪动画-->
+        <script th:src="@{/js/jquery.min.js}"></script>
+        <script th:src="@{/js/snow.js}"></script>
+
+        <link type="text/css" th:href="@{/css/style5.css}" rel="stylesheet"/>
+
+    </head>
+    <body>
+
+        <div class="snow-container">
+            <div class="ziti">
+		<span>
+			图片立方体
+		</span>
+            </div>
+
+            <div class="dongtai">
+                <ul>
+                    <li>
+                        <img th:src="${photo.photoUrl}" alt="">
+                    </li>
+                    <li>
+                        <img th:src="${photo.photoUrl}" alt="">
+                    </li>
+                    <li>
+                        <img th:src="${photo.photoUrl}" alt="">
+                    </li>
+                    <li>
+                        <img th:src="${photo.photoUrl}" alt="">
+                    </li>
+                    <li>
+                        <img th:src="${photo.photoUrl}" alt="">
+                    </li>
+                    <li>
+                        <img th:src="${photo.photoUrl}" alt="">
+                    </li>
+                </ul>
+
+                <embed th:src="'http://localhost:8086/bgm/'+${photo.photoBgm}+'.mp3'" loop="-1" autostart="true"
+                       volume="0"></embed>
+
+            </div>
+
+        </div>
+
+    </body>
+</html>

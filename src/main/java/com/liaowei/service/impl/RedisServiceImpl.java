@@ -21,6 +21,7 @@ public class RedisServiceImpl {
     @Resource
     RedisTemplate<String, Object> redisTemplate;
 
+
     /**
      * 校验rediskey是否存在
      * @param key

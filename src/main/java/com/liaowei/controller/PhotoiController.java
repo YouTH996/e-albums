@@ -1,5 +1,6 @@
 package com.liaowei.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.liaowei.model.Effects;
@@ -14,12 +15,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -47,6 +54,8 @@ public class PhotoiController {
     Environment environment;
     @Autowired
     EffectsService effectsService;
+    @Resource
+    RedisTemplate<String, Object> redisTemplate;
 
     @RequestMapping(value = "uploadPhoto", method = RequestMethod.POST)
     public String uploadPhoto(HttpServletRequest request, Model model, HttpSession session) throws IOException {
@@ -151,14 +160,82 @@ public class PhotoiController {
     @GetMapping("/delPhoto/{photoId}")
     public String delPhoto(@PathVariable(name = "photoId") Integer photoId, Model model,HttpSession session) {
         Photo photo = photoService.getById(photoId);
+        QueryWrapper<UserPhoto> wrapper = new QueryWrapper<UserPhoto>().eq("photo_id", photoId);
+        QueryWrapper<Effects> wrapper1 = new QueryWrapper<Effects>().eq("photo_id", photoId);
+        //借助Redis的原子操作实现分布式锁-对共享操作-资源进行控制
+        ValueOperations<String, Object> value = redisTemplate.opsForValue();
+        String key = "删除照片同步操作";
+        Boolean ifAbsent = value.setIfAbsent(key, "");
+        if (ifAbsent) {
+            boolean b = photoService.removeById(photoId);
+            boolean b1 = userPhotoService.remove(wrapper);
+            boolean b3 = effectsService.remove(wrapper1);
+            redisService.remove(key);
+        }
+
+
+        User user = (User)session.getAttribute("user");
+        Integer photoType = photo.getPhotoType();
         ArrayList<Photo> photos = (ArrayList<Photo>) session.getAttribute("photos");
+        //删除redis中的照片
+        switch (photoType) {
+            case 0:
+                List<Photo> pepList = JSONObject.parseArray(redisService.get(user.getUsername() + "_pepPhotos"), Photo.class);
+                ArrayList<Photo> pepList1 = new ArrayList<>();
+                for (Photo photo1 : pepList) {
+                    if (!photo1.getId().equals(photo.getId())) {
+                        pepList1.add(photo1);
+                    }
+
+                }
+                redisService.set(user.getUsername() + "_pepPhotos", JSON.toJSONString(pepList1));
+                session.setAttribute("pepPhotos", pepList1);
+                break;
+            case 1:
+                List<Photo> sceList = JSONObject.parseArray(redisService.get(user.getUsername() + "_scePhotos"), Photo.class);
+                ArrayList<Photo> sceList1 = new ArrayList<>();
+                for (Photo photo1 : sceList) {
+                    if (!photo1.getId().equals(photo.getId())) {
+                        sceList1.add(photo1);
+                    }
+
+                }
+                redisService.set(user.getUsername() + "_scePhotos", JSON.toJSONString(sceList1));
+                session.setAttribute("scePhotos", sceList1);
+                break;
+            case 2:
+                List<Photo> buiList = JSONObject.parseArray(redisService.get(user.getUsername() + "_buiPhotos"), Photo.class);
+                ArrayList<Photo> buiList1 = new ArrayList<>();
+                for (Photo photo1 : buiList) {
+                    if (!photo1.getId().equals(photo.getId())) {
+                        buiList1.add(photo1);
+                    }
+
+                }
+                redisService.set(user.getUsername() + "_buiPhotos", JSON.toJSONString(buiList1));
+                session.setAttribute("buiPhotos", buiList1);
+                break;
+            case 3:
+                List<Photo> foodList = JSONObject.parseArray(redisService.get(user.getUsername() + "_foodPhotos"), Photo.class);
+                ArrayList<Photo> foodList1 = new ArrayList<>();
+                for (Photo photo1 : foodList) {
+                    if (!photo1.getId().equals(photo.getId())) {
+                        foodList1.add(photo1);
+                    }
+
+                }
+                redisService.set(user.getUsername() + "_foodPhotos", JSON.toJSONString(foodList1));
+                session.setAttribute("foodPhotos", foodList1);
+                break;
+        }
         ArrayList<Photo> photos1 = new ArrayList<>();
         for (Photo photo1 : photos) {
-            if (photo1.getId().equals(photo.getId())) {
-                continue;
+            if (!photo1.getId().equals(photo.getId())) {
+                photos1.add(photo1);
             }
-            photos1.add(photo);
+
         }
+        redisService.set(user.getUsername()+"_photos",JSON.toJSONString(photos1));
         session.setAttribute("photos",photos1);
         if (photos.size() - photos1.size() == 1) {
             model.addAttribute("delMsg", "删除成功！");

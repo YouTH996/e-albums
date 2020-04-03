@@ -165,6 +165,17 @@ public class UserController {
         return "upload";
     }
 
+    /**
+     * 退出功能
+     * @param session
+     * @return
+     */
+    @RequestMapping("/toExit")
+    public String toExit(HttpSession session) {
+        session.invalidate();
+        return "login";
+    }
+
     @RequestMapping("/login")
     @ResponseBody
     public String login(HttpServletRequest request, HttpSession session, Model model) {
@@ -199,8 +210,11 @@ public class UserController {
                 //根据用于ID，得到用户照片关联表中的照片ID，用于获取该用户账户下的照片
                 QueryWrapper<UserPhoto> wrapper = new QueryWrapper<UserPhoto>().eq("user_id", id);
                 List<UserPhoto> userPhotoList = userPhotoService.list(wrapper);
+                ArrayList<Photo> photos = new ArrayList<>();
                 for (UserPhoto userPhoto : userPhotoList) {
                     Integer photoId = userPhoto.getPhotoId();
+                    Photo photo = photoService.getById(photoId);
+                    photos.add(photo);
                     HashMap map = getPhoto(photoId);
                     if (map.containsKey("pepPhoto")) {
                         Photo pepPhoto = (Photo) map.get("pepPhoto");
@@ -216,6 +230,7 @@ public class UserController {
                         foodList.add(foodPhoto);
                     }
                 }
+                session.setAttribute("photos", photos);
                 JudgeListSize(request, session, user, pepList, sceList, buiList, foodList);
                 //将user存入redis
                 redisService.setObject("user_" + name, user);

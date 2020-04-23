@@ -85,7 +85,7 @@
                         <td th:text="${photo.photoBgm}"></td>
                         <td><a th:href="'/effect/'+${photo.id}">点击进入图片特效查看</a></td>
                         <td th:text="${photo.photoUrl}"></td>
-                        <td>无</td>
+                        <td><span th:text="${photo.photoDescri}"></span></td>
                         <td>
                             <a th:href="'/delPhoto/'+${photo.id}" class="btn btn-primary btn-sm">删除</a>
                         </td>

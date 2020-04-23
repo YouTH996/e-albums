@@ -167,6 +167,7 @@ public class UserController {
 
     /**
      * 退出功能
+     *
      * @param session
      * @return
      */
@@ -330,56 +331,68 @@ public class UserController {
      */
     @RequestMapping("/registeUser")
     @ResponseBody
-    public String registeUser(HttpServletRequest request) {
-        String username = request.getParameter("username");
-        String pwd = request.getParameter("pwd2");
-        String gender = request.getParameter("gender");
-        int sex = ("male".equals(gender)) ? 0 : 1;
-        String email1 = request.getParameter("email");
-        String email = handleEmail(email1);
+    public String registeUser(HttpServletRequest request, HttpSession session) {
+        String capText = (String) session.getAttribute("verifyCode");
         String verifyCode = request.getParameter("verifyCode");
-        User user = new User(username, pwd, sex, email);
-        String code = redisService.get("register" + email + "_" + dateMsg());
-        if (!verifyCode.equals(code)) {
-            return "验证码错误";
+        if (!capText.equalsIgnoreCase(verifyCode)) {
+            return "验证码错误！";
+        }
+        String email1 = request.getParameter("email");
+        String username = request.getParameter("username");
+        String email = handleEmail(email1);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>().eq("email", email);
+        int i = userService.count(queryWrapper);
+        QueryWrapper<User> queryWrapper1 = new QueryWrapper<User>().eq("username", username);
+        int j = userService.count(queryWrapper1);
+        if (0 != j) {
+            return "已存在的用户名";
         } else {
-            QueryWrapper<User> queryWrapper = new QueryWrapper<User>()
-                    .eq("username", username)
-                    .eq("password", pwd).eq("sex", sex).eq("email", email);
-            boolean b = userService.saveOrUpdate(user, queryWrapper);
-            if (!b) {
-                return "对不起，注册失败！";
+            if (0 != i) {
+                return "该邮箱已被注册";
+            } else {
+                String pwd = request.getParameter("pwd2");
+                String gender = request.getParameter("gender");
+                int sex = ("male".equals(gender)) ? 0 : 1;
+
+                User user = new User(username, pwd, sex, email);
+                QueryWrapper<User> userQueryWrapper = new QueryWrapper<User>()
+                        .eq("username", username)
+                        .eq("password", pwd).eq("sex", sex).eq("email", email);
+                boolean b = userService.saveOrUpdate(user, userQueryWrapper);
+                if (!b) {
+                    return "对不起，注册失败！";
+                }
             }
+
+
         }
         return "恭喜你，注册成功！";
     }
 
-    @ResponseBody
-    @RequestMapping("confirmResetCode")
-    public String confirmResetCode(HttpServletRequest request) {
-        String email1 = request.getParameter("email");
-        String email = handleEmail(email1);
-        String verifyCode = request.getParameter("verifyCode");
-        String code = redisService.get("reset" + email + "_" + dateMsg());
-        if (!verifyCode.equals(code)) {
-            return "验证码错误";
-        }
-        return "";
-    }
 
     @ResponseBody
     @RequestMapping("resetUser")
-    public String resetUser(HttpServletRequest request) {
-        String email1 = request.getParameter("email");
+    public String resetUser(HttpServletRequest request,HttpSession session) {
+        String capText = (String) session.getAttribute("verifyCode");
+        String verifyCode = request.getParameter("verifyCode");
+        if (!capText.equalsIgnoreCase(verifyCode)) {
+            return "验证码错误！";
+        }
+        String username = request.getParameter("username");
+        String oldPwd = request.getParameter("oldPwd");
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<User>().select("username", "password").eq("username", username).eq("password", oldPwd);
+        User one = userService.getOne(userQueryWrapper);
+        if (null == one) {
+            return "用户名或原密码错误";
+        }
         String pwd = request.getParameter("pwd2");
-        String email = handleEmail(email1);
-        User user = new User(pwd);
-        QueryWrapper<User> queryWrapper = new QueryWrapper<User>().eq("email", email);
-        boolean b = userService.update(user, queryWrapper);
+        one.setPassword(pwd);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<User>().eq("username", username);
+        boolean b = userService.update(one, queryWrapper);
         if (!b) {
             return "修改密码失败";
         }
-        return "";
+        return "修改密码成功";
     }
 
     public HashMap getPhoto(int id) {
